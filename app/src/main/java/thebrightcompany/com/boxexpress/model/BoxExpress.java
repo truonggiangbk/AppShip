@@ -1,10 +1,16 @@
-package thebrightcompany.com.boxexpress.adapter;
+package thebrightcompany.com.boxexpress.model;
 
 public class BoxExpress {
 
     private String location;
     private int message_id;
     private String transaction_id;
+
+    public BoxExpress(String location, int message_id, String transaction_id) {
+        this.location = location;
+        this.message_id = message_id;
+        this.transaction_id = transaction_id;
+    }
 
     public String getLocation() {
         return location;
