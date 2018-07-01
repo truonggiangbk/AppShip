@@ -2,37 +2,37 @@ package thebrightcompany.com.boxexpress.model;
 
 public class BoxExpress {
 
-    private String location;
-    private int message_id;
-    private String transaction_id;
+    private String TransactionID;
+    private String BoxInfo;
+    private String Sdt;
 
-    public BoxExpress(String location, int message_id, String transaction_id) {
-        this.location = location;
-        this.message_id = message_id;
-        this.transaction_id = transaction_id;
+    public BoxExpress(String transactionID, String boxInfo, String sdt) {
+        TransactionID = transactionID;
+        BoxInfo = boxInfo;
+        Sdt = sdt;
     }
 
-    public String getLocation() {
-        return location;
+    public String getTransactionID() {
+        return TransactionID;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setTransactionID(String transactionID) {
+        TransactionID = transactionID;
     }
 
-    public int getMessage_id() {
-        return message_id;
+    public String getBoxInfo() {
+        return BoxInfo;
     }
 
-    public void setMessage_id(int message_id) {
-        this.message_id = message_id;
+    public void setBoxInfo(String boxInfo) {
+        BoxInfo = boxInfo;
     }
 
-    public String getTransaction_id() {
-        return transaction_id;
+    public String getSdt() {
+        return Sdt;
     }
 
-    public void setTransaction_id(String transaction_id) {
-        this.transaction_id = transaction_id;
+    public void setSdt(String sdt) {
+        Sdt = sdt;
     }
 }

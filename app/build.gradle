@@ -28,7 +28,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     //add this dependency
     implementation 'com.journeyapps:zxing-android-embedded:3.4.0'
-    implementation ('com.amazonaws:aws-android-sdk-mobile-client:2.6.+@aar') { transitive = true }
-    implementation 'com.amazonaws:aws-android-sdk-iot:2.6.+'
     implementation 'com.google.code.gson:gson:2.7'
+    implementation 'com.amazonaws:aws-android-sdk-iot:2.6.+'
+    implementation 'com.amazonaws:aws-android-sdk-core:2.6.+'
+    implementation 'com.amazonaws:aws-android-sdk-lambda:2.6.+'
+    implementation ('com.amazonaws:aws-android-sdk-mobile-client:2.6.+@aar') { transitive = true }
 }

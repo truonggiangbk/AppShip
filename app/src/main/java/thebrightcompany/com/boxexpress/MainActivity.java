@@ -7,10 +7,12 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +37,7 @@ import com.amazonaws.services.iot.model.AttachPrincipalPolicyRequest;
 import com.amazonaws.services.iot.model.CreateKeysAndCertificateRequest;
 import com.amazonaws.services.iot.model.CreateKeysAndCertificateResult;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -54,11 +57,6 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
 
     private static final int REQUEST_CODE_LOC = 22;
-    private static final int ENDPOINT_MQTT_PORT = 8883;
-    private static final int ENDPOINT_GREENGRASS_DISCOVERY_PORT = 8443;
-    private static final String PUB_TOPIC = "shipper";
-    private static final String SUB_TOPIC = "Shipper_Server_Sub";
-
 
     // --- Constants to modify per your configuration ---
 
@@ -67,9 +65,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String CUSTOMER_SPECIFIC_ENDPOINT = "ad78brdsa8nsn.iot.us-east-2.amazonaws.com";
     // Cognito pool ID. For this app, pool needs to be unauthenticated pool with
     // AWS IoT permissions.
-    private static final String COGNITO_POOL_ID = "us-east-2:71f5e87c-6c56-4854-831d-f3d1c71f8dbb";
+    private static final String COGNITO_POOL_ID = "us-east-2:459a7626-d206-4d32-9a74-e1f6b31cce61";
     // Name of the AWS IoT policy to attach to a newly created certificate
-    private static final String AWS_IOT_POLICY_NAME = "arn:aws:iot:us-east-2:316056620446:policy/ExpressBoxPolicy";
+    private static final String AWS_IOT_POLICY_NAME = "IoTBroker";
 
     // Region of AWS IoT
     private static final Regions MY_REGION = Regions.US_EAST_2;
@@ -79,6 +77,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEYSTORE_PASSWORD = "password";
     // Certificate and key aliases in the KeyStore
     private static final String CERTIFICATE_ID = "default";
+
+    private static final String PUB_TOPIC = "giang1";
+    private static final String SUB_TOPIC = "giang2";
 
     private AWSIotClient mIotAndroidClient;
     private AWSIotMqttManager mqttManager;
@@ -96,21 +97,22 @@ public class MainActivity extends AppCompatActivity {
     private IntentIntegrator qrScan;
 
     private TextView txt_qrCode;
+    FloatingActionButton fab;
+    Button btn_scan_qr_code;
+    private String msg = "";
+    private TextView txt_description;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //initAWSServer();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        txt_qrCode = (TextView) findViewById(R.id.txt_qrCode);
+        btn_scan_qr_code = (Button) findViewById(R.id.btn_scanQRCode);
+        txt_description = (TextView) findViewById(R.id.txt_description);
 
-        initPermission();
         //Intializing scan object
         qrScan = new IntentIntegrator(this);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        btn_scan_qr_code.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 qrScan.initiateScan();
@@ -119,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
         initMQTTAWS();
     }
+
 
     private void initMQTTAWS() {
 
@@ -165,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
                     clientKeyStore = AWSIotKeystoreHelper.getIotKeystore(certificateId,
                             keystorePath, keystoreName, keystorePassword);
                     //btnConnect.setEnabled(true);
-                    connectMQTTAWS();
+                    //connectMQTTAWS();
                 } else {
                     Log.i(TAG, "Key/cert " + certificateId + " not found in keystore.");
                 }
@@ -221,12 +224,12 @@ public class MainActivity extends AppCompatActivity {
                                 .getCertificateArn());
                         mIotAndroidClient.attachPrincipalPolicy(policyAttachRequest);
 
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                //btnConnect.setEnabled(true);
-                            }
-                        });
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                //btnConnect.setEnabled(true);
+//                            }
+//                        });
                     } catch (Exception e) {
                         Log.e(TAG,
                                 "Exception occurred when generating new private key and certificate.",
@@ -234,64 +237,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }).start();
+
         }
-    }
-
-    /**
-     * The method use to init aws
-     */
-    private void initAWSServer() {
-        AWSMobileClient.getInstance().initialize(this, new AWSStartupHandler() {
-            @Override
-            public void onComplete(AWSStartupResult awsStartupResult) {
-
-                // Obtain the reference to the AWSCredentialsProvider and AWSConfiguration objects
-                //credentialsProvider = AWSMobileClient.getInstance().getCredentialsProvider();
-                //configuration = AWSMobileClient.getInstance().getConfiguration();
-
-                // Use IdentityManager#getUserID to fetch the identity id.
-                IdentityManager.getDefaultIdentityManager().getUserID(new IdentityHandler() {
-                    @Override
-                    public void onIdentityId(String identityId) {
-                        Log.d(TAG, "Identity ID = " + identityId);
-
-                        // Use IdentityManager#getCachedUserID to
-                        //  fetch the locally cached identity id.
-                        final String cachedIdentityId =
-                                IdentityManager.getDefaultIdentityManager().getCachedUserID();
-                    }
-
-                    @Override
-                    public void handleError(Exception exception) {
-                        Log.d(TAG, "Error in retrieving the identity" + exception);
-                    }
-                });
-            }
-        }).execute();
-    }
-
-    /**
-     * The method use to open permission camera
-     */
-    private void initPermission() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            int accessCamera = checkSelfPermission(Manifest.permission.CAMERA);
-            int accessWriteExternal = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            List<String> listRequestPermission = new ArrayList<String>();
-
-            if (accessCamera != PackageManager.PERMISSION_GRANTED) {
-                listRequestPermission.add(android.Manifest.permission.CAMERA);
-            }
-
-            if (accessWriteExternal != PackageManager.PERMISSION_GRANTED) {
-                listRequestPermission.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            }
-
-            if (!listRequestPermission.isEmpty()) {
-                String[] strRequestPermission = listRequestPermission.toArray(new String[listRequestPermission.size()]);
-                requestPermissions(strRequestPermission, REQUEST_CODE_LOC);
-            }
-        }
+        connectMQTTAWS();
     }
 
     @Override
@@ -337,6 +285,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     //Getting the scan results
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -347,14 +296,27 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Result Not Found", Toast.LENGTH_LONG).show();
             } else {
                 //if qr contains data
-                BoxExpress boxExpress = new BoxExpress("Xuân Phương", 12, "Hello");
+                BoxExpress boxExpress = new BoxExpress("123", "Nha Xuan Phuong", "0969298682");
                 Gson gson = new Gson();
-                String json = gson.toJson(boxExpress);
-                publishClick(json);
+                String json = gson.toJson(boxExpress).toString();
+                txt_description.setText(json);
+                msg = json;
+                Log.d(TAG, "json: " + json);
                 try {
+                    //Convert the data to json
+                    JSONObject jsonObject = new JSONObject(json);
+                    BoxExpress box = gson.fromJson(String.valueOf(jsonObject), BoxExpress.class);
+                    txt_description.setText("TransactionID: " + box.getTransactionID() +"\n" +
+                    "BoxInfo: " + box.getBoxInfo() + "\n" + "Sdt: " + box.getSdt());
+
+                }catch (JSONException e){
+                    Log.d(TAG, e.toString());
+                }
+                //publishClick("Giang ngao");
+                //publishClick(json);
+                /*try {
                     //Converting the data to json
                     JSONObject obj = new JSONObject(result.getContents());
-                    txt_qrCode.setText(obj.toString());
                     Toast.makeText(this, "Result: " + result.getContents(), Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -362,9 +324,10 @@ public class MainActivity extends AppCompatActivity {
                     //that means the encoded format not matches
                     //in this case you can display whatever data is available on the qrcode
                     //to a toast
-                    txt_qrCode.setText(result.getContents());
                     Toast.makeText(this, "Error: " + result.getContents(), Toast.LENGTH_LONG).show();
-                }
+                }*/
+
+                //publishClick("Anh yeu em");
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data);
@@ -390,23 +353,31 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
                             if (status == AWSIotMqttClientStatus.Connecting) {
                                 //tvStatus.setText("Connecting...");
+                                //showMessage("Connecting..");
 
                             } else if (status == AWSIotMqttClientStatus.Connected) {
                                 //tvStatus.setText("Connected");
+                                //showMessage("Connected");
+                               if (!TextUtils.isEmpty(msg)){
+                                   publishClick(msg);
+                                   msg = "";
+                               }
 
                             } else if (status == AWSIotMqttClientStatus.Reconnecting) {
                                 if (throwable != null) {
                                     Log.e(TAG, "Connection error.", throwable);
+                                    //showMessage("Reconnecting..");
                                 }
                                 //tvStatus.setText("Reconnecting");
                             } else if (status == AWSIotMqttClientStatus.ConnectionLost) {
                                 if (throwable != null) {
                                     Log.e(TAG, "Connection error.", throwable);
+                                    //showMessage("Connection error");
                                 }
                                 //tvStatus.setText("Disconnected");
                             } else {
                                 //tvStatus.setText("Disconnected");
-
+                                //showMessage("Disconnected");
                             }
                         }
                     });
@@ -423,10 +394,10 @@ public class MainActivity extends AppCompatActivity {
      */
     private void subScribeMQTTAWS(){
 
-        Log.d(TAG, "topic = " + PUB_TOPIC);
+        Log.d(TAG, "topic = " + SUB_TOPIC);
 
         try {
-            mqttManager.subscribeToTopic(PUB_TOPIC, AWSIotMqttQos.QOS0,
+            mqttManager.subscribeToTopic(SUB_TOPIC, AWSIotMqttQos.QOS0,
                     new AWSIotMqttNewMessageCallback() {
                         @Override
                         public void onMessageArrived(final String topic, final byte[] data) {
@@ -459,9 +430,10 @@ public class MainActivity extends AppCompatActivity {
      */
     private void publishClick(String msg){
         try {
-            showMessage(msg);
+            //showMessage(msg);
             mqttManager.publishString(msg, PUB_TOPIC, AWSIotMqttQos.QOS0);
         } catch (Exception e) {
+            //showMessage("Publish error");
             Log.e(TAG, "Publish error.", e);
         }
     }
@@ -480,6 +452,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         //subScribeMQTTAWS();
+        initMQTTAWS();
         super.onResume();
 
     }
@@ -490,7 +463,7 @@ public class MainActivity extends AppCompatActivity {
         disconnectClick();
     }
 
-    private void showMessage(String msg){
+    /*private void showMessage(String msg){
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-    }
+    }*/
 }
