@@ -9,16 +9,33 @@
     android:orientation="vertical"
     tools:showIn="@layout/activity_main">
 
-    <Button
-        android:id="@+id/btn_scanQRCode"
-        android:gravity="center"
-        android:text="Scan QR Code"
-        android:layout_gravity="center"
-        android:layout_marginTop="50dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginRight="50dp"
+    <LinearLayout
+        android:layout_marginTop="40dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <Button
+            android:id="@+id/btn_QR"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Scan QR code"
+            android:textAllCaps="false"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/btn_clear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Clear"
+            android:textAllCaps="false"
+            android:textSize="15sp" />
+    </LinearLayout>
 
    <LinearLayout
        android:background="@drawable/border_textview"
@@ -27,18 +44,60 @@
        android:layout_marginRight="10dp"
        android:orientation="vertical"
        android:layout_width="match_parent"
-       android:layout_height="200sp">
+       android:layout_height="100sp">
 
        <TextView
-           android:id="@+id/txt_description"
+           android:id="@+id/txt_QR1"
            android:textColor="@android:color/black"
            android:layout_marginTop="10dp"
            android:layout_marginBottom="10dp"
-           android:textSize="20sp"
+           android:textSize="15sp"
            android:layout_marginLeft="10dp"
            android:layout_marginRight="10dp"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content" />
    </LinearLayout>
+
+    <LinearLayout
+        android:background="@drawable/border_textview"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="100sp">
+
+        <TextView
+            android:id="@+id/txt_QR2"
+            android:textColor="@android:color/black"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:textSize="15sp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:background="@drawable/border_textview"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="75sp">
+
+        <TextView
+            android:id="@+id/txt_result"
+            android:textColor="@android:color/black"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:textSize="15sp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
 </LinearLayout>

@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,6 +52,10 @@ import java.util.List;
 import java.util.UUID;
 
 import thebrightcompany.com.boxexpress.model.BoxExpress;
+
+import static thebrightcompany.com.boxexpress.MainActivity.EditText_Idx.EDIT_TEXT_QR1;
+import static thebrightcompany.com.boxexpress.MainActivity.EditText_Idx.EDIT_TEXT_QR2;
+import static thebrightcompany.com.boxexpress.MainActivity.EditText_Idx.EDIT_TEXT_RESULT;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -99,16 +104,35 @@ public class MainActivity extends AppCompatActivity {
     private TextView txt_qrCode;
     FloatingActionButton fab;
     Button btn_scan_qr_code;
+    Button btn_clear;
     private String msg = "";
-    private TextView txt_description;
+    private TextView txt_QR1;
+    private TextView txt_QR2;
+    private TextView txt_result;
+    public enum EditText_Idx{
+        EDIT_TEXT_QR1,
+        EDIT_TEXT_QR2,
+        EDIT_TEXT_RESULT
+    }
+
+    private  EditText_Idx edittext_idx = EDIT_TEXT_QR1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        btn_scan_qr_code = (Button) findViewById(R.id.btn_scanQRCode);
-        txt_description = (TextView) findViewById(R.id.txt_description);
+        btn_scan_qr_code = (Button) findViewById(R.id.btn_QR);
+        btn_clear = (Button) findViewById(R.id.btn_clear);
+        txt_QR1 = (TextView) findViewById(R.id.txt_QR1);
+        txt_QR2 = (TextView) findViewById(R.id.txt_QR2);
+        txt_result = (TextView) findViewById(R.id.txt_result);
+
+        //Intializing txt_description
+        txt_QR1.setText("Quét mã QR thứ nhất");
+        txt_QR2.setText("Quét mã QR thứ hai");
+        txt_result.setText("Kết quả !!!");
 
         //Intializing scan object
         qrScan = new IntentIntegrator(this);
@@ -116,6 +140,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 qrScan.initiateScan();
+            }
+        });
+
+        btn_clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                txt_QR1.setText("Quét mã QR thứ nhất");
+                txt_QR2.setText("Quét mã QR thứ hai");
+                txt_result.setText("Kết quả !!!");
+                edittext_idx = EDIT_TEXT_QR1;
             }
         });
 
@@ -240,6 +274,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
         connectMQTTAWS();
+        //subScribeMQTTAWS();
     }
 
     @Override
@@ -299,19 +334,36 @@ public class MainActivity extends AppCompatActivity {
                 BoxExpress boxExpress = new BoxExpress("123", "Nha Xuan Phuong", "0969298682");
                 Gson gson = new Gson();
                 String json = gson.toJson(boxExpress).toString();
-                txt_description.setText(json);
+                //publishClick(json);
+                switch (edittext_idx){
+                    case EDIT_TEXT_QR1:
+                        txt_QR1.setText("Quét mã QR thứ nhất");
+                        txt_QR2.setText("Quét mã QR thứ hai");
+                        txt_result.setText("Kết quả !!!");
+                        txt_QR1.setText(json);
+                        edittext_idx = EDIT_TEXT_QR2;
+                        break;
+                    case EDIT_TEXT_QR2:
+                        txt_QR2.setText(json);
+                        txt_result.setText("Đợi kết quả...");
+                        edittext_idx = EDIT_TEXT_RESULT;
+                        break;
+                    case EDIT_TEXT_RESULT:
+                        edittext_idx = EDIT_TEXT_QR1;
+                        break;
+                }
                 msg = json;
                 Log.d(TAG, "json: " + json);
-                try {
-                    //Convert the data to json
-                    JSONObject jsonObject = new JSONObject(json);
-                    BoxExpress box = gson.fromJson(String.valueOf(jsonObject), BoxExpress.class);
-                    txt_description.setText("TransactionID: " + box.getTransactionID() +"\n" +
-                    "BoxInfo: " + box.getBoxInfo() + "\n" + "Sdt: " + box.getSdt());
-
-                }catch (JSONException e){
-                    Log.d(TAG, e.toString());
-                }
+//                try {
+//                    //Convert the data to json
+//                    JSONObject jsonObject = new JSONObject(json);
+//                    BoxExpress box = gson.fromJson(String.valueOf(jsonObject), BoxExpress.class);
+//                    txt_QR1.setText("TransactionID: " + box.getTransactionID() +"\n" +
+//                    "BoxInfo: " + box.getBoxInfo() + "\n" + "Sdt: " + box.getSdt());
+//
+//                }catch (JSONException e){
+//                    Log.d(TAG, e.toString());
+//                }
                 //publishClick("Giang ngao");
                 //publishClick(json);
                 /*try {
@@ -353,11 +405,12 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
                             if (status == AWSIotMqttClientStatus.Connecting) {
                                 //tvStatus.setText("Connecting...");
-                                //showMessage("Connecting..");
+                                showMessage("Connecting..");
 
                             } else if (status == AWSIotMqttClientStatus.Connected) {
                                 //tvStatus.setText("Connected");
-                                //showMessage("Connected");
+                                showMessage("Connected");
+                                subScribeMQTTAWS();
                                if (!TextUtils.isEmpty(msg)){
                                    publishClick(msg);
                                    msg = "";
@@ -366,18 +419,18 @@ public class MainActivity extends AppCompatActivity {
                             } else if (status == AWSIotMqttClientStatus.Reconnecting) {
                                 if (throwable != null) {
                                     Log.e(TAG, "Connection error.", throwable);
-                                    //showMessage("Reconnecting..");
+                                    showMessage("Reconnecting..");
                                 }
                                 //tvStatus.setText("Reconnecting");
                             } else if (status == AWSIotMqttClientStatus.ConnectionLost) {
                                 if (throwable != null) {
                                     Log.e(TAG, "Connection error.", throwable);
-                                    //showMessage("Connection error");
+                                    showMessage("Connection error");
                                 }
                                 //tvStatus.setText("Disconnected");
                             } else {
                                 //tvStatus.setText("Disconnected");
-                                //showMessage("Disconnected");
+                                showMessage("Disconnected");
                             }
                         }
                     });
@@ -409,10 +462,12 @@ public class MainActivity extends AppCompatActivity {
                                         Log.d(TAG, "Message arrived:");
                                         Log.d(TAG, "   Topic: " + topic);
                                         Log.d(TAG, " Message: " + message);
-
+                                        showMessage(message);
+                                        txt_result.setText(message);
                                         //tvLastMessage.setText(message);
 
                                     } catch (UnsupportedEncodingException e) {
+                                        showMessage("Message encoding error");
                                         Log.e(TAG, "Message encoding error.", e);
                                     }
                                 }
@@ -420,6 +475,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
         } catch (Exception e) {
+            showMessage("Subscription error");
             Log.e(TAG, "Subscription error.", e);
         }
     }
@@ -433,7 +489,7 @@ public class MainActivity extends AppCompatActivity {
             //showMessage(msg);
             mqttManager.publishString(msg, PUB_TOPIC, AWSIotMqttQos.QOS0);
         } catch (Exception e) {
-            //showMessage("Publish error");
+            showMessage("Publish error");
             Log.e(TAG, "Publish error.", e);
         }
     }
@@ -463,7 +519,7 @@ public class MainActivity extends AppCompatActivity {
         disconnectClick();
     }
 
-    /*private void showMessage(String msg){
+    private void showMessage(String msg){
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-    }*/
+    }
 }
