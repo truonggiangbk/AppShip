@@ -83,8 +83,14 @@ public class MainActivity extends AppCompatActivity {
     // Certificate and key aliases in the KeyStore
     private static final String CERTIFICATE_ID = "default";
 
-    private static final String PUB_TOPIC = "giang1";
-    private static final String SUB_TOPIC = "giang2";
+    private static final String PUB_TOPIC = "Ship_Server_Pub";
+    private static final String SUB_TOPIC = "Ship_Server_Sub";
+
+    private static final String TRANSACTION_ID = "TransactionID";
+    private static final String SDT = "Sdt";
+    private static final String BOXINFO = "BoxInfo";
+    private static final String ADDRESS = "Address";
+    private static final String BOXID = "BoxID";
 
     private AWSIotClient mIotAndroidClient;
     private AWSIotMqttManager mqttManager;
@@ -114,6 +120,9 @@ public class MainActivity extends AppCompatActivity {
         EDIT_TEXT_QR2,
         EDIT_TEXT_RESULT
     }
+
+    private String Qr1_info;
+    private String Qr2_info;
 
     private  EditText_Idx edittext_idx = EDIT_TEXT_QR1;
 
@@ -152,8 +161,9 @@ public class MainActivity extends AppCompatActivity {
                 edittext_idx = EDIT_TEXT_QR1;
             }
         });
-
+//        showMessage("init aws");
         initMQTTAWS();
+
     }
 
 
@@ -331,9 +341,48 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Result Not Found", Toast.LENGTH_LONG).show();
             } else {
                 //if qr contains data
-                BoxExpress boxExpress = new BoxExpress("123", "Nha Xuan Phuong", "0969298682");
-                Gson gson = new Gson();
-                String json = gson.toJson(boxExpress).toString();
+//                BoxExpress boxExpress = new BoxExpress("123", "Nha Xuan Phuong", "0969298682");
+//                Gson gson = new Gson();
+//                String json = gson.toJson(boxExpress).toString();
+
+                String json = "";
+                String transactionid = null;
+                String sdt = null;
+                String boxinfo = null;
+                String address = null;
+                String boxid = null;
+
+                try {
+                    JSONObject obj = new JSONObject(result.getContents());
+                    transactionid = obj.getString(TRANSACTION_ID);showMessage(transactionid);
+                    sdt = obj.getString(SDT);showMessage(sdt);
+                    boxinfo = obj.getString(BOXINFO);showMessage(boxinfo);
+                }
+                catch (JSONException e){
+                    Log.d(TAG, e.toString());
+                }
+
+                try {
+                    JSONObject obj = new JSONObject(result.getContents());
+                    address = obj.getString(ADDRESS);showMessage(address);
+                    boxid = obj.getString(BOXID);showMessage(boxid);
+                }
+                catch (JSONException e){
+                    Log.d(TAG, e.toString());
+                }
+
+                if (transactionid != null) {
+                    json = "TransactionID: " + transactionid + "\n" + "Sdt :" + sdt + "\n" + "Địa chỉ box :" + boxinfo;
+                    Qr1_info = transactionid;
+                    showMessage(json);
+                }
+
+                if (boxid != null) {
+                    json = "Address: " + address + "\n" + "BoxID: " + boxid;
+                    Qr2_info = boxid;
+                    showMessage(json);
+                }
+
                 //publishClick(json);
                 switch (edittext_idx){
                     case EDIT_TEXT_QR1:
@@ -346,14 +395,15 @@ public class MainActivity extends AppCompatActivity {
                     case EDIT_TEXT_QR2:
                         txt_QR2.setText(json);
                         txt_result.setText("Đợi kết quả...");
-                        edittext_idx = EDIT_TEXT_RESULT;
-                        break;
-                    case EDIT_TEXT_RESULT:
                         edittext_idx = EDIT_TEXT_QR1;
                         break;
                 }
-                msg = json;
-                Log.d(TAG, "json: " + json);
+
+                if(Qr1_info != null && Qr2_info != null){
+                    msg = "{\"transaction_id\": \"" + Qr1_info + "\"," + "\"box_id\": \"" + Qr2_info + "\"}";
+                    Log.d(TAG, "json: " + json);
+                }
+
 //                try {
 //                    //Convert the data to json
 //                    JSONObject jsonObject = new JSONObject(json);
