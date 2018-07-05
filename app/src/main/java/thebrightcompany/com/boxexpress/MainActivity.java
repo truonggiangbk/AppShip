@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
     FloatingActionButton fab;
     Button btn_scan_qr_code;
     Button btn_clear;
-    private String msg = "";
+    private String msg = null;
     private TextView txt_QR1;
     private TextView txt_QR2;
     private TextView txt_result;
@@ -121,8 +121,8 @@ public class MainActivity extends AppCompatActivity {
         EDIT_TEXT_RESULT
     }
 
-    private String Qr1_info;
-    private String Qr2_info;
+    private String Qr1_info = null;
+    private String Qr2_info = null;
 
     private  EditText_Idx edittext_idx = EDIT_TEXT_QR1;
 
@@ -400,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if(Qr1_info != null && Qr2_info != null){
-                    msg = "{\"transaction_id\": \"" + Qr1_info + "\"," + "\"box_id\": \"" + Qr2_info + "\"}";
+                    msg = "{\"message_id\": 301,\"transaction_id\": \"" + Qr1_info + "\"," + "\"box_id\": \"" + Qr2_info + "\"}";
                     Log.d(TAG, "json: " + json);
                 }
 
@@ -463,7 +463,9 @@ public class MainActivity extends AppCompatActivity {
                                 subScribeMQTTAWS();
                                if (!TextUtils.isEmpty(msg)){
                                    publishClick(msg);
-                                   msg = "";
+                                   msg = null;
+                                   Qr1_info = null;
+                                   Qr2_info = null;
                                }
 
                             } else if (status == AWSIotMqttClientStatus.Reconnecting) {
